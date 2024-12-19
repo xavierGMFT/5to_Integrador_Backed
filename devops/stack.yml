@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  backend:
+    image: inventory-backend:1
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    ports:
+      - target: 8084
+        published: 8084
+        protocol: tcp
+        mode: host
+    networks:
+      - inventory_net
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.backend.entrypoints=http"
+        - "traefik.http.routers.backend.rule=Host(`backend.inventory.com`)"
+        - "traefik.http.middlewares.backend-https-redirect.redirectscheme.scheme=https"
+        - "traefik.http.routers.backend.middlewares=backend-https-redirect"
+        - "traefik.http.routers.backend-secure.entrypoints=https"
+        - "traefik.http.routers.backend-secure.rule=Host(`backend.inventory.com`)"
+        - "traefik.http.routers.backend-secure.tls=true"
+        - "traefik.http.routers.backend-secure.tls.certresolver=http"
+        - "traefik.http.routers.backend-secure.service=backend"
+        - "traefik.http.services.backend.loadbalancer.server.port=8080"
+        - "traefik.docker.network=traefik-public"
+
+  frontend:
+    image: inventory-frontend:1
+    ports:
+      - target: 80
+        published: 3000
+        protocol: tcp
+        mode: host
+    networks:
+      - inventory_net
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.frontend.entrypoints=http"
+        - "traefik.http.routers.frontend.rule=Host(`frontend.inventory.com`)"
+        - "traefik.http.middlewares.frontend-https-redirect.redirectscheme.scheme=https"
+        - "traefik.http.routers.frontend.middlewares=frontend-https-redirect"
+        - "traefik.http.routers.frontend-secure.entrypoints=https"
+        - "traefik.http.routers.frontend-secure.rule=Host(`frontend.inventory.com`)"
+        - "traefik.http.routers.frontend-secure.tls=true"
+        - "traefik.http.routers.frontend-secure.tls.certresolver=http"
+        - "traefik.http.routers.frontend-secure.service=frontend"
+        - "traefik.http.services.frontend.loadbalancer.server.port=80"
+        - "traefik.docker.network=traefik-public"
+
+  bdinventory:
+    image: postgres:15.0-bullseye
+    environment:
+      - TZ=America/Guayaquil
+      - POSTGRES_DB=inventory
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_USER=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - pg_inventory_data:/var/lib/postgresql/data/pgdata
+    networks:
+      - inventory_net
+
+volumes:
+  pg_inventory_data:
+    external: true
+
+networks:
+  inventory_net:
+    external: true

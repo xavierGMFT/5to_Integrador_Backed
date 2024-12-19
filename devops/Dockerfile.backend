@@ -1,0 +1,8 @@
+# Dockerfile para el backend
+FROM openjdk:17-jdk-slim
+
+# Copia el archivo JAR generado por Gradle
+COPY inventory-0.0.1-SNAPSHOT.jar inventory.jar
+
+# Comando para ejecutar la aplicación Spring Boot
+CMD ["java", "-jar", "inventory.jar"]

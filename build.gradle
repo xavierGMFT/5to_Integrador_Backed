@@ -35,8 +35,13 @@ dependencies {
 	//dependecia de swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0' // Versión compatible con Spring Boot 3.x
 	implementation 'io.springfox:springfox-boot-starter:3.0.0'
+	implementation 'org.postgresql:postgresql:42.6.0'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+// Configuración para crear el archivo JAR ejecutable
+bootJar {
+    mainClass = 'com.example.inventory.InventoryApplication'  // Usa mainClass en lugar de mainClassName
 }
